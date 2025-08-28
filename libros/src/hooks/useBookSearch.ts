@@ -142,11 +142,12 @@ const useBookSearch = () => {
         setError(null);
         saveToStorage(STORAGE_KEYS.error, '');
       }
-    } catch (err) {
+    } catch (error) {
       // Manejar errores de red o de la API
       const errorMsg = 'Error al buscar libros. Inténtalo de nuevo.';
       setError(errorMsg);
       saveToStorage(STORAGE_KEYS.error, errorMsg);
+      console.error('Error en búsqueda:', error);
     } finally {
       // Siempre desactivar el estado de carga, sin importar si hubo error o éxito
       setIsLoading(false);
