@@ -25,7 +25,7 @@ vi.mock('../../hooks/useBookSearch', () => ({
   y no "BookList" -> Se crea una version simple que solo muestra cuantos libros recibió
 */
 vi.mock('../BookList', () => ({
-  default: ({ books }: { books: any[] }) => (
+  default: ({ books }: { books: unknown[] }) => (
     <div data-testid="book-list">
       {books.length} books found
     </div>

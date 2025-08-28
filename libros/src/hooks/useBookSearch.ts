@@ -50,7 +50,7 @@ const useBookSearch = () => {
   }, []);
 
   // Función para guardar en sessionStorage
-  const saveToStorage = (key: string, value: any) => {
+  const saveToStorage = (key: string, value: string | unknown[]) => {
     if (typeof window !== 'undefined') {
       try {
         sessionStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));

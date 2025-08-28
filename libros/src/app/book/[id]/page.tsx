@@ -61,9 +61,9 @@ const BookDetailPage: React.FC = () => {
         
         const data = await response.json();
         setBook(data);
-      } catch (err) {
+      } catch (error) {
         setError('Error al cargar los detalles del libro');
-        console.error(err);
+        console.error(error);
       } finally {
         setLoading(false);
       }
