@@ -27,7 +27,6 @@ RUN npm install --production=false --silent
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generar cliente de Prisma y buildear aplicación
-RUN npx prisma generate --silent
 RUN npm run build
 
 # Imagen de producción, copiar todos los archivos y ejecutar next
