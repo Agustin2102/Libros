@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Instalar dependencias basadas en el gestor de paquetes preferido
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci --ignore-scripts
 
 # Rebuild el código fuente solo cuando sea necesario
 FROM base AS builder
@@ -18,10 +18,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Instalar dependencias de desarrollo necesarias para el build
+RUN npm install --production=false
+
 # Next.js recolecta telemetría completamente anónima sobre el uso general.
 # Aprende más aquí: https://nextjs.org/telemetry
 # Descomenta la siguiente línea si quieres deshabilitar la telemetría durante el build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generar cliente de Prisma y buildear aplicación
 RUN npx prisma generate
@@ -31,9 +34,9 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # Descomenta la siguiente línea si quieres deshabilitar la telemetría durante el runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -52,7 +55,7 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
