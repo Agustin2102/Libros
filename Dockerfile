@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Instalar dependencias basadas en el gestor de paquetes preferido
 COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --silent
 
 # Rebuild el código fuente solo cuando sea necesario
 FROM base AS builder
@@ -19,7 +19,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Instalar dependencias de desarrollo necesarias para el build
-RUN npm install --production=false
+RUN npm install --production=false --silent
 
 # Next.js recolecta telemetría completamente anónima sobre el uso general.
 # Aprende más aquí: https://nextjs.org/telemetry
@@ -27,7 +27,7 @@ RUN npm install --production=false
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generar cliente de Prisma y buildear aplicación
-RUN npx prisma generate
+RUN npx prisma generate --silent
 RUN npm run build
 
 # Imagen de producción, copiar todos los archivos y ejecutar next

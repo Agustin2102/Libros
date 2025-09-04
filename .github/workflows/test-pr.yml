@@ -1,4 +1,4 @@
-name: Test Suite on Pull Request
+name: Test Suite
 
 on:
   pull_request:
@@ -21,10 +21,24 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --silent
 
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: npx prisma generate --silent
 
     - name: Run unit tests
       run: npm run test:run
+
+    - name: Tests Summary
+      if: success()
+      run: |
+        echo "###  All Tests Passed! " >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🧪 Your code quality looks great!" >> $GITHUB_STEP_SUMMARY
+        
+    - name:  Tests Failed
+      if: failure()
+      run: |
+        echo "###  Some Tests Failed " >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Please check the test results above and fix failing tests." >> $GITHUB_STEP_SUMMARY
