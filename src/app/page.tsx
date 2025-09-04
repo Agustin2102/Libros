@@ -1,5 +1,5 @@
 import BookSearch from '../components/BookSearch';
-
+{/*Esto es un comentario */}
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
