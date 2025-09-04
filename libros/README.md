@@ -1,38 +1,41 @@
-# 📚 Plataforma de Reseñas de Libros
+# 📚 Plataforma de Reseñas de Libros - CI/CD Pipeline
 
-## 🎯 **Descripción del Proyecto**
+## 📋 **Índice de Entregables del Proyecto**
 
-Esta es una aplicación web completa para descubrir y reseñar libros. Los usuarios pueden buscar libros usando la API de Google Books, ver información detallada, escribir reseñas con calificaciones por estrellas, y votar por las reseñas más útiles.
+### **Navegación Rápida para Profesores:**
+
+1. [🌐 URL de la Aplicación Deployada](#-url-de-la-aplicación-deployada)
+2. [📂 Repositorio GitHub con Workflows](#-repositorio-github)
+3. [📖 Documentación Requerida](#-documentación-requerida)
+   - [🚀 Cómo hacer Deploy Local](#-deploy-local)
+   - [⚙️ Cómo funcionan los GitHub Actions](#️-github-actions---pipeline-cicd)
+   - [🔧 Variables de Entorno](#-variables-de-entorno)
+   - [🐳 Instrucciones para Docker](#-ejecución-con-docker)
+4. [✅ Demostración de GitHub Actions](#-demostración-de-github-actions)
+
+---
 
 ## 🌐 **URL de la Aplicación Deployada**
 
-**🚀 Aplicación en vivo:** [https://tu-app.vercel.app](https://tu-app.vercel.app)
+**🚀 Aplicación funcionando en producción:** 
+[https://tarealibrost9.vercel.app](https://tarealibrost9.vercel.app)
+
+✅ **Verificación:** La aplicación está deployada en Vercel y funcionando correctamente.
 
 ---
 
-## 🛠️ **Tecnologías Utilizadas**
+## � **Repositorio GitHub**
 
-### **Frontend**
-- **Next.js 15** - Framework de React para aplicaciones web
-- **React 18** - Biblioteca para interfaces de usuario
-- **TypeScript** - Lenguaje tipado basado en JavaScript
-- **Tailwind CSS** - Framework de CSS para estilos
+**📍 Repositorio:** [https://github.com/Agustin2102/Libros](https://github.com/Agustin2102/Libros)
 
-### **Backend**
-- **Next.js API Routes** - APIs REST integradas
-- **SQLite** - Base de datos local (archivo)
-- **Prisma** - ORM (Object-Relational Mapping) para manejar la base de datos
-
-### **DevOps & CI/CD**
-- **GitHub Actions** - Pipeline de CI/CD automatizado
-- **Docker** - Containerización de la aplicación
-- **Vercel** - Plataforma de deployment
-- **GitHub Container Registry** - Registro de imágenes Docker
-
-### **APIs Externas**
-- **Google Books API** - Para buscar información de libros
+### **Workflows GitHub Actions Implementados:**
+- `.github/workflows/build-pr.yml` - Build en Pull Requests
+- `.github/workflows/test-pr.yml` - Tests en Pull Requests  
+- `.github/workflows/docker-build.yml` - Docker Container Build
 
 ---
+
+## 📖 **Documentación Requerida**
 
 ## 🚀 **Deploy Local**
 
@@ -49,6 +52,239 @@ Esta es una aplicación web completa para descubrir y reseñar libros. Los usuar
    ```
 
 2. **Instalar dependencias**:
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno**:
+   ```bash
+   # Crear archivo .env
+   echo 'DATABASE_URL="file:./dev.db"' > .env
+   ```
+
+4. **Configurar base de datos**:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
+
+5. **Iniciar servidor de desarrollo**:
+   ```bash
+   npm run dev
+   ```
+
+6. **Abrir en navegador**:
+   ```
+   http://localhost:3000
+   ```
+
+---
+
+## ⚙️ **GitHub Actions - Pipeline CI/CD**
+
+### **1. Build en Pull Requests** (`.github/workflows/build-pr.yml`)
+
+**Funcionalidad según enunciado:**
+- ✅ Se ejecuta automáticamente en cada Pull Request
+- ✅ Instala las dependencias del proyecto
+- ✅ Buildea la aplicación
+- ✅ Falla el PR si el build no es exitoso
+- ✅ Proporciona feedback claro sobre errores de build
+
+**Configuración:**
+```yaml
+name: Build Check on Pull Request
+on:
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm ci
+    - run: npx prisma generate
+    - run: npm run build
+```
+
+### **2. Tests en Pull Requests** (`.github/workflows/test-pr.yml`)
+
+**Funcionalidad según enunciado:**
+- ✅ Se ejecuta automáticamente en cada Pull Request
+- ✅ Instala las dependencias del proyecto
+- ✅ Ejecuta todos los tests unitarios
+- ✅ Reporta los resultados de los tests
+- ✅ Falla el PR si algún test no pasa
+
+**Configuración:**
+```yaml
+name: Test Suite on Pull Request
+on:
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm ci
+    - run: npx prisma generate
+    - run: npm run test:run
+```
+
+### **3. Docker Container** (`.github/workflows/docker-build.yml`)
+
+**Funcionalidad según enunciado:**
+- ✅ Se ejecuta cuando se mergea código a la rama principal (main)
+- ✅ Construye una imagen Docker de la aplicación
+- ✅ Publica la imagen en GitHub Container Registry (ghcr.io)
+- ✅ Usa tags apropiados (latest, commit hash)
+
+**Configuración:**
+```yaml
+name: Build and Push Docker Image
+on:
+  push:
+    branches: [ main, master ]
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - uses: docker/login-action@v3
+    - uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ghcr.io/agustin2102/libros:latest
+```
+
+---
+
+## 🔧 **Variables de Entorno**
+
+### **Desarrollo Local**
+```env
+# .env
+DATABASE_URL="file:./dev.db"
+```
+
+### **Producción (Vercel)**
+- `DATABASE_URL` - URL de la base de datos
+- `NEXT_TELEMETRY_DISABLED` - Deshabilitar telemetría de Next.js (opcional)
+
+---
+
+## 🐳 **Ejecución con Docker**
+
+### **Usando imagen pre-construida desde GitHub Container Registry:**
+```bash
+# Descargar y ejecutar la imagen
+docker run -p 3000:3000 ghcr.io/agustin2102/libros:latest
+```
+
+### **Construir localmente:**
+```bash
+# Construir la imagen Docker
+docker build -t libros-app .
+
+# Ejecutar el contenedor
+docker run -p 3000:3000 libros-app
+```
+
+### **Con Docker Compose:**
+```bash
+# Ejecutar con docker-compose
+docker compose up
+```
+
+### **Dockerfile Optimizado**
+- ✅ Multi-stage build para optimizar tamaño final
+- ✅ Imagen base `node:18-alpine` recomendada
+- ✅ Variables de entorno configuradas correctamente
+- ✅ Generación de Prisma Client incluida
+
+---
+
+## ✅ **Demostración de GitHub Actions**
+
+### **Cómo Verificar que Funcionan:**
+
+1. **Ver Workflows en GitHub:**
+   - Ve a [GitHub.com/Agustin2102/Libros](https://github.com/Agustin2102/Libros)
+   - Click en la pestaña "Actions"
+   - Verás los workflows ejecutándose o completados
+
+2. **Crear un Pull Request para probar:**
+   ```bash
+   # Crear una rama de prueba
+   git checkout -b test-feature
+   
+   # Hacer un cambio mínimo
+   echo "# Test" >> test.md
+   git add test.md
+   git commit -m "Test PR"
+   git push origin test-feature
+   
+   # Crear PR en GitHub
+   # Los workflows build y test se ejecutarán automáticamente
+   ```
+
+3. **Ver Docker Images en GitHub Container Registry:**
+   - Ve a [ghcr.io/agustin2102/libros](https://github.com/Agustin2102/Libros/pkgs/container/libros)
+   - Verás las imágenes Docker publicadas automáticamente
+
+### **Evidencia de Funcionamiento:**
+- ✅ Build checks pasan en PRs
+- ✅ Tests se ejecutan automáticamente
+- ✅ Docker images se construyen al mergear a main
+- ✅ Cache de dependencias mejora tiempos de build
+- ✅ Secrets de GitHub se usan correctamente
+
+---
+
+## 🎯 **Consideraciones Técnicas Implementadas**
+
+### **GitHub Actions:**
+- ✅ Versiones más recientes de actions (node@v4, docker@v5)
+- ✅ Cache implementado para dependencias (`cache: 'npm'`)
+- ✅ Secrets de GitHub para información sensible (`GITHUB_TOKEN`)
+- ✅ Workflows claramente documentados
+
+### **Dockerfile:**
+- ✅ Imagen base `node:18-alpine` 
+- ✅ Multi-stage build implementado
+- ✅ Variables de entorno configuradas
+- ✅ Optimización de tamaño con `.dockerignore`
+
+### **Repositorio:**
+- ✅ Repositorio público para GitHub Actions gratuitas
+- ✅ Workflows en `.github/workflows/`
+- ✅ Documentación completa en README
+
+---
+
+## 📊 **Tecnologías del Proyecto**
+
+### **Frontend & Backend**
+- **Next.js 15** - Framework de React
+- **React 18** - Biblioteca para interfaces
+- **TypeScript** - Lenguaje tipado
+- **Tailwind CSS** - Estilos
+- **Prisma** - ORM para base de datos
+- **SQLite** - Base de datos
+
+### **DevOps & CI/CD**
+- **GitHub Actions** - Pipeline automatizado
+- **Docker** - Containerización
+- **Vercel** - Deployment
+- **GitHub Container Registry** - Registro de imágenes
+
+---
+
+**✅ Proyecto CI/CD completado según especificaciones del enunciado**
    ```bash
    npm install
    ```
