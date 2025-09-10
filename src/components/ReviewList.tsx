@@ -30,7 +30,8 @@ import React, { useState, useEffect } from 'react';
  * Basada en el modelo de base de datos Prisma
  */
 interface Review {
-  id: string; // ID único de la reseña
+  _id?: string; // ID único de la reseña
+  id?: string; // ID alternativa de la reseña
   bookId: string; // ID del libro asociado
   userName: string; // Nombre del usuario que escribió la reseña
   rating: number; // Calificación con estrellas (1-5)
@@ -234,7 +235,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ bookId }) => {
       ) : (
         <div className="space-y-6">
           {sortedReviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
+            <div key={review._id || review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
               
               {/* HEADER DE LA RESEÑA */}
               <div className="flex justify-between items-start mb-3">
@@ -270,7 +271,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ bookId }) => {
                   
                   {/* BOTÓN UPVOTE */}
                   <button
-                    onClick={() => handleVote(review.id, 'up')}
+                    onClick={() => handleVote(review._id || review.id, 'up')}
                     className="flex items-center space-x-1 text-gray-600 hover:text-green-600 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,7 +282,7 @@ const ReviewList: React.FC<ReviewListProps> = ({ bookId }) => {
                   
                   {/* BOTÓN DOWNVOTE */}
                   <button
-                    onClick={() => handleVote(review.id, 'down')}
+                    onClick={() => handleVote(review._id || review.id, 'down')}
                     className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
