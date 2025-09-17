@@ -3,6 +3,7 @@ import connectDB from '../../../lib/mongoose';
 import Book from '../../../models/Book';
 import Review from '../../../models/Review';
 import Vote from '../../../models/Vote';
+import { requireAuth } from '../../../lib/auth-utils';
 
 // GET - Obtener reseñas por libro
 export async function GET(request: NextRequest) {
@@ -27,16 +28,19 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Crear nueva reseña
-export async function POST(request: NextRequest) {
+// POST - Crear nueva reseña (PROTEGIDA CON AUTENTICACIÓN)
+async function handlePost(request: NextRequest) {
   try {
     await connectDB(); // <-- Establece la conexión a la base de datos
 
     const body = await request.json();
-    const { bookId, userName, rating, reviewText, bookData } = body;
+    const { bookId, rating, reviewText, bookData } = body;
+    
+    // Obtener datos del usuario del token (agregado por requireAuth)
+    const user = (request as any).user;
 
     // Validaciones
-    if (!bookId || !userName || !rating || !reviewText) {
+    if (!bookId || !rating || !reviewText) {
       return NextResponse.json({ error: 'Todos los campos son requeridos' }, { status: 400 });
     }
 
@@ -65,10 +69,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Crear la reseña
+    // Crear la reseña usando datos del usuario autenticado
     const review = await Review.create({ // <-- Cambio de prisma a mongoose
       bookId,
-      userName,
+      userName: user.name, // Usar nombre del usuario autenticado
+      userId: user.userId, // Agregar ID del usuario para futuras funcionalidades
       rating,
       reviewText,
     });
@@ -79,3 +84,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
   }
 }
+
+// Proteger la ruta POST con autenticación
+export const POST = requireAuth(handlePost);

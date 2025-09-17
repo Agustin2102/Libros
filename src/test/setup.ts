@@ -4,6 +4,10 @@ import '@testing-library/jest-dom';
 // Importamos la función 'vi' de vitest para crear mocks (versiones falsas)
 import { vi } from 'vitest';
 
+// 🔐 CONFIGURACIÓN DE VARIABLES DE ENTORNO PARA TESTS
+// Configuramos JWT_SECRET para que los tests de autenticación funcionen
+process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
+
 // 🌐 MOCK GLOBAL PARA FETCH (llamadas a APIs)
 // ¿Por qué? Las pruebas no deben hacer llamadas reales a internet
 // Creamos una versión falsa de fetch que podemos controlar

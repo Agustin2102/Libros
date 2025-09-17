@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IReview extends Document {
   bookId: string; // ID del libro desde Google Books API
   userName: string;
+  userId?: string; // ID del usuario que escribió la reseña (opcional para compatibilidad)
   rating: number; // 1-5 estrellas
   reviewText: string;
   upvotes: number;
@@ -14,6 +15,7 @@ export interface IReview extends Document {
 const ReviewSchema = new Schema<IReview>({
   bookId: { type: String, required: true, index: true },
   userName: { type: String, required: true },
+  userId: { type: String, required: false, index: true }, // ID del usuario autenticado
   rating: { 
     type: Number, 
     required: true, 
