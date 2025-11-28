@@ -23,6 +23,9 @@
 "use client"; // Este componente se ejecuta en el navegador
 
 import React, { useState } from 'react';
+import { useAuthContext } from '../context/AuthContext';
+import Link from 'next/link';
+
 
 // DEFINICIÓN DE TIPOS
 // Estas interfaces definen la estructura de datos que recibe el componente
@@ -61,13 +64,15 @@ interface ReviewFormProps {
  */
 const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded }) => {
   
+  // HOOK DE AUTENTICACIÓN
+  const { user, isAuthenticated } = useAuthContext();
+  
   // ESTADOS DEL FORMULARIO
   // Estos estados manejan toda la información del formulario
   
   const [rating, setRating] = useState(0); // Calificación seleccionada (1-5)
   const [hoverRating, setHoverRating] = useState(0); // Calificación temporal al hacer hover
   const [reviewText, setReviewText] = useState(''); // Texto de la reseña
-  const [userName, setUserName] = useState(''); // Nombre del usuario
   const [isSubmitting, setIsSubmitting] = useState(false); // Estado de carga del envío
 
   /**
@@ -79,8 +84,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevenir recarga de página
     
+    // VERIFICAR AUTENTICACIÓN
+    if (!isAuthenticated || !user) {
+      alert('Debes iniciar sesión para escribir reseñas');
+      return;
+    }
+    
     // VALIDACIÓN: Verificar que todos los campos estén completos
-    if (rating === 0 || reviewText.trim() === '' || userName.trim() === '') {
+    if (rating === 0 || reviewText.trim() === '') {
       alert('Por favor completa todos los campos y selecciona una calificación');
       return;
     }
@@ -88,18 +99,21 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
     setIsSubmitting(true); // Iniciar estado de carga
 
     try {
+      const token = localStorage.getItem('token');
+      
       // ENVÍO: Hacer petición POST a la API
       const response = await fetch('/api/reviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Agregar token de autenticación
         },
         body: JSON.stringify({
           bookId, // ID del libro
-          userName: userName.trim(), // Nombre del usuario (sin espacios extra)
           rating, // Calificación con estrellas
           reviewText: reviewText.trim(), // Texto de la reseña (sin espacios extra)
           bookData, // Datos del libro para guardar si no existe
+          // userName se obtiene automáticamente del token en el backend
         }),
       });
 
@@ -114,7 +128,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
       // LIMPIEZA: Resetear el formulario después del envío exitoso
       setRating(0);
       setReviewText('');
-      setUserName('');
       
       alert('¡Reseña agregada exitosamente!');
       
@@ -138,24 +151,25 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
       {/* TÍTULO DEL FORMULARIO */}
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Escribir una reseña</h2>
       
+      {/* VERIFICACIÓN DE AUTENTICACIÓN */}
+      {!isAuthenticated && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-800">
+            Debes <Link href="/login" className="text-blue-600 underline hover:text-blue-700">iniciar sesión</Link> para escribir reseñas.
+          </p>
+        </div>
+      )}
+
+      {isAuthenticated && user && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800">
+            Escribiendo como: <span className="font-medium">{user.name}</span>
+          </p>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* CAMPO: NOMBRE DEL USUARIO */}
-        <div>
-          <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-2">
-            Tu nombre
-          </label>
-          <input
-            type="text"
-            id="userName"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)} // Actualizar estado en tiempo real
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-            placeholder="Ingresa tu nombre"
-            required
-          />
-        </div>
-
         {/* CAMPO: SISTEMA DE CALIFICACIÓN CON ESTRELLAS */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -169,7 +183,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
                 onClick={() => setRating(star)} // Establecer calificación al hacer clic
                 onMouseEnter={() => setHoverRating(star)} // Mostrar preview al hacer hover
                 onMouseLeave={() => setHoverRating(0)} // Quitar preview al salir del hover
-                className="text-3xl focus:outline-none transition-colors duration-150"
+                disabled={!isAuthenticated} // Deshabilitar si no está autenticado
+                aria-label={`${star} estrella${star > 1 ? 's' : ''}`} // Etiqueta accesible para tests
+                className={`text-3xl focus:outline-none transition-colors duration-150 ${
+                  !isAuthenticated ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                }`}
               >
                 <svg
                   className={`w-8 h-8 ${
@@ -202,8 +220,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)} // Actualizar texto en tiempo real
             rows={5}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-            placeholder="Comparte tu opinión sobre este libro..."
+            disabled={!isAuthenticated} // Deshabilitar si no está autenticado
+            className={`w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
+              !isAuthenticated ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+            }`}
+            placeholder={isAuthenticated ? "Comparte tu opinión sobre este libro..." : "Inicia sesión para escribir reseñas"}
             required
           />
           {/* CONTADOR: Mostrar número de caracteres */}
@@ -215,12 +236,21 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, bookData, onReviewAdded
         {/* BOTÓN DE ENVÍO */}
         <button
           type="submit"
-          // DESHABILITADO: Si está enviando o faltan datos
-          disabled={isSubmitting || rating === 0 || reviewText.trim() === '' || userName.trim() === ''}
-          className="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+          // DESHABILITADO: Si está enviando, no autenticado o faltan datos
+          disabled={isSubmitting || !isAuthenticated || rating === 0 || reviewText.trim() === ''}
+          className={`w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 ${
+            !isAuthenticated || isSubmitting || rating === 0 || reviewText.trim() === ''
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          {/* TEXTO DINÁMICO: Cambiar según estado de envío */}
-          {isSubmitting ? 'Enviando...' : 'Publicar reseña'}
+          {/* TEXTO DINÁMICO: Cambiar según estado */}
+          {!isAuthenticated 
+            ? 'Inicia sesión para reseñar' 
+            : isSubmitting 
+              ? 'Enviando...' 
+              : 'Publicar reseña'
+          }
         </button>
       </form>
     </div>

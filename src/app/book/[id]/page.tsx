@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ReviewForm from '../../../components/ReviewForm';
 import ReviewList from '../../../components/ReviewList';
+import FavoriteButton from '../../../components/FavoriteButton';
+import ReadingListSelector from '../../../components/ReadingListSelector';
 
 interface Book {
   id: string;
@@ -37,6 +39,10 @@ const BookDetailPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReadingListSelector, setShowReadingListSelector] = useState(false);
+
+  // TEMPORAL: ID de usuario hardcodeado (hasta implementar autenticación)
+  const userId = 'user-123';
 
   /**
    * Función simple para volver a la página anterior
@@ -120,7 +126,7 @@ const BookDetailPage: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Columna izquierda - Imagen del libro */}
+          {/* Columna izquierda - Imagen del libro y acciones */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-center mb-6">
@@ -141,6 +147,43 @@ const BookDetailPage: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* NUEVA SECCIÓN: Botones de acción */}
+              <div className="space-y-3 mb-6">
+                {/* Botón de Favoritos */}
+                <FavoriteButton 
+                  bookId={bookId}
+                  userId={userId}
+                  className="w-full"
+                />
+
+                {/* Botón para agregar a lista de lectura */}
+                <button
+                  onClick={() => setShowReadingListSelector(!showReadingListSelector)}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-100 text-blue-600 hover:bg-blue-200 border border-blue-300 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span className="text-sm font-medium">
+                    {showReadingListSelector ? 'Ocultar listas' : 'Agregar a lista'}
+                  </span>
+                </button>
+              </div>
+
+              {/* NUEVA SECCIÓN: Selector de listas de lectura */}
+              {showReadingListSelector && (
+                <div className="mb-6">
+                  <ReadingListSelector 
+                    bookId={bookId}
+                    userId={userId}
+                    onSuccess={() => {
+                      setShowReadingListSelector(false);
+                      alert('Libro agregado a la lista exitosamente');
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Enlaces externos */}
               <div className="space-y-2">
@@ -168,7 +211,7 @@ const BookDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Columna derecha - Información del libro */}
+          {/* Columna derecha - Información del libro (sin cambios) */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
